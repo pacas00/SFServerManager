@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentScheduler" Version="5.5.1" />
+    <PackageReference Include="LiteDB" Version="5.0.10" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Syncfusion.Blazor" Version="18.2.0.45" />
+    <PackageReference Include="System.IO.Pipelines" Version="4.7.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Pages\Servers.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Update="wwwroot\css\SF.css">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SFSM_Datatypes\SFSM_Datatypes.csproj" />
+  </ItemGroup>
+
+</Project>

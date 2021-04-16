@@ -1,0 +1,244 @@
+﻿@page "/ManageServer"
+@using SFServerManager.Code.Instanced.Services
+@using Microsoft.AspNetCore.WebUtilities
+@using SFServerManager.Code
+@using Syncfusion.Blazor.Navigations
+@using LiteDB
+@using SFServerManager.Code.DataObjects
+@using SFServerManager.Code.Static.Utilities
+
+
+@inject DatabaseService db;
+@inject NavigationManager navManager
+
+<h5>Manage Server - @Server.Nickname</h5>
+<AuthorizeView>
+    <Authorized>
+        <div class="card">
+            <div class="">
+                <SfToolbar>
+                    <ToolbarItems>
+                        <ToolbarItem Text="Start" OnClick="ToolbarClick"></ToolbarItem>
+                        <ToolbarItem Text="Stop" OnClick="ToolbarClick"></ToolbarItem>
+                        <ToolbarItem Text="Restart" OnClick="ToolbarClick"></ToolbarItem>
+                        <ToolbarItem Disabled="true"></ToolbarItem>
+                        <ToolbarItem Type="ItemType.Separator"></ToolbarItem>
+                        <ToolbarItem Text="Force Quit" OnClick="ToolbarClick"></ToolbarItem>
+                    </ToolbarItems>
+                </SfToolbar>
+            </div>
+            <div class="card-body" style="
+                                     font-size: small;
+                                     font-family: monospace;
+                                     font-weight: 600;
+                                     line-height: 1;
+                                     padding: 0.5rem;
+                                 ">
+                <table class="table">
+                    <thead class="thead">
+                    <tr>
+                        <th scope="col">Game Versions</th>
+                        <th scope="col"></th>
+                        <th scope="col"></th>
+                        <th scope="col"></th>
+                        <th scope="col"></th>
+                        <th scope="col">World Info</th>
+                        <th scope="col"></th>
+                        <th scope="col"></th>
+                        <th scope="col"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">SFSM:</th>
+                            <td>@Server.LastStatus.GetSFSMVersion()</td>
+                            <td>Satisfactory:</td>
+                            <td>@Server.LastStatus.Game.GetSFVersion() (@Server.LastStatus.Game.GetSFBuild())</td>
+                            <td></td>
+                            <td>SessionName:</td>
+                            <td>@Server.LastStatus.World.SessionName</td>
+                            <td>SessionID:</td>
+                            <td>@Server.LastStatus.World.SessionId</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">SML:</th>
+                            <td>@Server.LastStatus.GetSMLVersion()</td>
+                            <td>Engine:</td>
+                            <td>@Server.LastStatus.Game.GetEngine()</td>
+                            <td></td>
+                            <td>Players:</td>
+                            <td>@Server.LastStatus.World.ConnectedPlayers / @Server.LastStatus.World.MaxPlayers</td>
+                            <td>Visibility:</td>
+                            <td>@Server.LastStatus.World.SessionVisibility</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Unused:</th>
+                            <td>Unused</td>
+                            <td>Branch:</td>
+                            <td>@Server.LastStatus.Game.GetBranch()</td>
+                            <td></td>
+                            <td>MapType:</td>
+                            <td>@Server.LastStatus.World.MapType</td>
+                            <td>ServerName:</td>
+                            <td>@Server.LastStatus.World.ServerName</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="container-fluid" style="border: 1px solid #eeeeee; background: #fdfdfd;">
+            <SfTab>
+                <TabAnimationSettings>
+                    <TabAnimationPrevious Effect="AnimationEffect.None"></TabAnimationPrevious>
+                    <TabAnimationNext Effect="AnimationEffect.None"></TabAnimationNext>
+                </TabAnimationSettings>
+                <TabItems>
+                    <TabItem>
+                        <!-- Section 1 - Stats + Quick Controls -->
+                        <ChildContent>
+                            <TabHeader Text="Manage"></TabHeader>
+                        </ChildContent>
+                        <ContentTemplate>
+                            <div>This is where the management controls would be... IF I HAD ANY :D.</div>
+                            <div>But no seriously, I'm working on this.</div>
+                        </ContentTemplate>
+                    </TabItem>
+                    <TabItem>
+                        <ChildContent>
+                            <TabHeader Text="Players"></TabHeader>
+                        </ChildContent>
+                        <ContentTemplate>
+                            <div>I'm working on this.</div>
+                        </ContentTemplate>
+                    </TabItem>
+                    <TabItem>
+                        <!-- Section 2 - Controls -->
+                        <ChildContent>
+                            <TabHeader Text="Plugins"></TabHeader>
+                        </ChildContent>
+                        <ContentTemplate>
+
+                            <div class="card-body" style="
+                                     font-size: small;
+                                     font-family: monospace;
+                                     font-weight: 600;
+                                     line-height: 1;
+                                     padding: 0.5rem;
+                                 ">
+                                <table class="table">
+                                    <thead class="thead">
+                                        <tr>
+                                            <th scope="col">Plugin Name</th>
+                                            <th scope="col"></th>
+                                            <th scope="col">Description</th>
+                                            <th scope="col"></th>
+                                            <th scope="col">Created By</th>
+                                            <th scope="col"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach (Plugin plugin in Server.LastStatus.Plugins)
+                                    {
+                                        <tr>
+                                            <th scope="row">@plugin.FriendlyName</th>
+                                            <td>@plugin.VersionName</td>
+                                            <td>@plugin.Description</td>
+                                            <td></td>
+                                            <td>@plugin.CreatedBy</td>
+                                            <td><a href="@plugin.CreatedByUrl">@plugin.CreatedByUrl</a></td>
+                                        </tr>
+                                    }
+
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </ContentTemplate>
+                    </TabItem>
+                    <TabItem>
+                        <!-- Section 3 - Settings -->
+                        <ChildContent>
+                            <TabHeader Text="Settings"></TabHeader>
+                        </ChildContent>
+                        <ContentTemplate>
+                            <div>Settings.</div>
+                        </ContentTemplate>
+                    </TabItem>
+                </TabItems>
+            </SfTab>
+        </div>
+
+
+    </Authorized>
+    <NotAuthorized>
+        Not Logged In
+    </NotAuthorized>
+</AuthorizeView>
+
+<style>
+    /* Toolbar Styles */
+    .e-cut-icon:before {
+        content: "\e604"
+    }
+</style>
+
+@code {
+    ServerEntry Server;
+    String GUID;
+
+    protected override void OnInitialized()
+    {
+        var query = QueryHelpers.ParseQuery(navManager.ToAbsoluteUri(navManager.Uri).Query);
+
+        if (query.ContainsKey("guid"))
+        {
+            GUID = query["guid"];
+            Server = db.Query<ServerEntry>("Servers").Where(x => x.Uuid == Guid.Parse(GUID)).First();
+        }
+        else
+        {
+            navManager.NavigateTo("/");
+            return;
+        }
+    }
+
+
+    private void ToolbarClick(ClickEventArgs args)
+    {
+        switch (args.Item.Text)
+        {
+            case "Start":
+                {
+                    var req = HttpHelper.CreateCommandRequest("C366020887DF753F10B335D9E0A031D8", "Start");
+                    HttpHelper.PostCommandRequest(req, Server.buildURL("command"));
+                    break;
+                }
+            case "Stop":
+                {
+                    var req = HttpHelper.CreateCommandRequest("C366020887DF753F10B335D9E0A031D8", "Stop");
+                    HttpHelper.PostCommandRequest(req, Server.buildURL("command"));
+                    break;
+                }
+            case "Restart":
+                {
+                    var req = HttpHelper.CreateCommandRequest("C366020887DF753F10B335D9E0A031D8", "Restart");
+                    HttpHelper.PostCommandRequest(req, Server.buildURL("command"));
+                    break;
+                }
+            case "Force Quit":
+                {
+                    var req = HttpHelper.CreateCommandRequest("C366020887DF753F10B335D9E0A031D8", "Force Quit");
+                    HttpHelper.PostCommandRequest(req, Server.buildURL("command"));
+                    break;
+                }
+
+            default:
+            case "":
+                {
+                    break;
+                }
+        }
+    }
+
+}

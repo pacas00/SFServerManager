@@ -1,0 +1,94 @@
+﻿@page "/Settings"
+
+@using SFServerManager.Code.Instanced.Services;
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Grids
+@using System.Diagnostics
+
+@inject DatabaseService db;
+
+<h3>Settings</h3>
+<AuthorizeView>
+    <Authorized>
+        <SfGrid DataSource="@SettingsList" Toolbar="@(new List<string>() { "Add", "Edit", "Delete" })">
+            <GridEditSettings AllowEditing="true" AllowDeleting="true" AllowAdding="true" Mode="EditMode.Dialog" NewRowPosition="NewRowPosition.Bottom"></GridEditSettings>
+            <GridEvents OnActionBegin="OnActionBegin" OnActionComplete="ActionComplete" TValue="Setting"></GridEvents>
+            <GridColumns>
+                <GridColumn Field=@nameof(Setting.Key) HeaderText="Key" IsPrimaryKey="true" Width="120"></GridColumn>
+                <GridColumn Field=@nameof(Setting.Value) HeaderText="Value" Width="120"></GridColumn>
+            </GridColumns>
+        </SfGrid>
+    </Authorized>
+    <NotAuthorized>
+        Not Logged In
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    
+    public List<Setting> SettingsList { get; set; }
+
+    protected override void OnInitialized()
+    {
+        SettingsList = db.GetCollection<Setting>("Settings").FindAll().ToList();
+
+    }
+    public void OnActionBegin(ActionEventArgs<Setting> Args) 
+    { 
+        if (Args.RequestType == Syncfusion.Blazor.Grids.Action.Save && Args.Action == "Add") 
+        { 
+            Args.RowData.DataType = Args.RowData.DetermineType(); //HOW DO? 
+            Setting newSetting = Args.RowData;
+            var ret = db.Insert<Setting>("Settings", newSetting);
+            Args.Data = Args.RowData;
+            SettingsList.Add(Args.RowData);
+            SettingsList = db.GetCollection<Setting>("Settings").FindAll().ToList();
+        }
+        
+        if (Args.RequestType == Syncfusion.Blazor.Grids.Action.Save && Args.Action == "Edit") 
+        { 
+            Setting newSetting = Args.PreviousData;
+            newSetting.Value = Args.RowData.Value;
+            Args.RowData = newSetting;
+            Args.RowData.DataType = Args.RowData.DetermineType(); //HOW DO? 
+            var ret = db.Update<Setting>("Settings", newSetting);
+            Args.Data = Args.RowData;
+            SettingsList = db.GetCollection<Setting>("Settings").FindAll().ToList();
+        }
+        
+
+        if (Args.RequestType == Syncfusion.Blazor.Grids.Action.Delete)
+        {
+            Setting toDelete = db.FindAll<Setting>("Settings").First(x => x.Key == Args.RowData.Key);
+            db.Delete<Setting>("Settings", toDelete.Id);
+            SettingsList = db.GetCollection<Setting>("Settings").FindAll().ToList();
+        }
+    } 
+
+    public void ActionComplete(ActionEventArgs<Setting> args)
+    {
+        if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save)
+        {
+            // Triggers once save operation completes
+
+            var allSettings = db.FindAll<Setting>("Settings");
+            
+            //Actually save to DB
+            foreach (Setting setting in SettingsList)
+            {
+                var dbSetting = allSettings.First(x => x.Key == setting.Key);
+                if (dbSetting == null)
+                {
+                    //Opps! All Berries!
+                    Console.WriteLine(3);
+                }
+                else
+                {
+                    dbSetting.Value = setting.Value;
+                    db.Update("Settings", dbSetting);
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,131 @@
+﻿@page "/Servers"
+
+@using SFServerManager.Code.Instanced.Services;
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Grids
+@using System.Diagnostics
+@using SFServerManager.Code
+@using Syncfusion.Blazor.Navigations
+
+@inject DatabaseService db;
+@inject NavigationManager navManager
+
+<h3>Servers</h3>
+
+<AuthorizeView>
+    <Authorized>
+        <SfGrid @ref="ServerGrid" DataSource="@ServerList" Toolbar="Toolbaritems">
+            <GridEditSettings AllowEditing="true" AllowDeleting="true" Mode="EditMode.Dialog" NewRowPosition="NewRowPosition.Bottom"></GridEditSettings>
+            <GridEvents OnActionBegin="OnActionBegin" OnActionComplete="ActionComplete" OnToolbarClick="ToolbarClickHandler" TValue="ServerEntry"></GridEvents>
+            <GridColumns>
+                <GridColumn Field=@nameof(ServerEntry.Uuid) HeaderText="Uuid" IsPrimaryKey="true" Width="80"></GridColumn>
+                <GridColumn Field=@nameof(ServerEntry.Apikey) HeaderText="Apikey" Width="80"></GridColumn>
+                <GridColumn Field=@nameof(ServerEntry.Hostname) HeaderText="Hostname" Width="40"></GridColumn>
+                <GridColumn Field=@nameof(ServerEntry.SFSM_Port) HeaderText="SFSM_Port" Width="40"></GridColumn>
+                <GridColumn Field=@nameof(ServerEntry.Watchdog_Port) HeaderText="Watchdog_Port" Width="40"></GridColumn>
+            </GridColumns>
+        </SfGrid>
+    </Authorized>
+    <NotAuthorized>
+        Not Logged In
+    </NotAuthorized>
+</AuthorizeView>
+
+<style>
+    .e-manage::before {
+        content: '\e7da';
+    }
+</style>
+
+@code {
+
+    public List<ServerEntry> ServerList { get; set; }
+    private List<Object> Toolbaritems = new List<Object>() { "Edit", "Delete", new ItemModel() { Text = "Manage", TooltipText = "Manage", PrefixIcon = "e-manage", Id = "Manage" } };
+
+    public SfGrid<ServerEntry> ServerGrid;
+
+    protected override void OnInitialized()
+    {
+        ServerList = db.GetCollection<ServerEntry>("Servers").FindAll().ToList();
+
+    }
+    public void OnActionBegin(ActionEventArgs<ServerEntry> Args)
+    {
+        if (Args.RequestType == Syncfusion.Blazor.Grids.Action.Save && Args.Action == "Add")
+        {
+            ServerEntry newSetting = Args.RowData;
+            var ret = db.Insert<ServerEntry>("Servers", newSetting);
+            Args.Data = Args.RowData;
+            ServerList.Add(Args.RowData);
+            ServerList = db.GetCollection<ServerEntry>("Servers").FindAll().ToList();
+        }
+
+        if (Args.RequestType == Syncfusion.Blazor.Grids.Action.Save && Args.Action == "Edit")
+        {
+            ServerEntry newSetting = Args.PreviousData;
+            newSetting.Apikey = Args.RowData.Apikey;
+            newSetting.Hostname = Args.RowData.Hostname;
+            newSetting.SFSM_Port = Args.RowData.SFSM_Port;
+            newSetting.Watchdog_Port = Args.RowData.Watchdog_Port;
+            Args.RowData = newSetting;
+            var ret = db.Update<ServerEntry>("Servers", newSetting);
+            Args.Data = Args.RowData;
+            ServerList = db.GetCollection<ServerEntry>("Servers").FindAll().ToList();
+        }
+
+
+        if (Args.RequestType == Syncfusion.Blazor.Grids.Action.Delete)
+        {
+            ServerEntry toDelete = db.FindAll<ServerEntry>("Servers").First(x => x.Uuid == Args.RowData.Uuid);
+            db.Delete<ServerEntry>("Servers", toDelete.Id);
+            ServerList = db.GetCollection<ServerEntry>("Servers").FindAll().ToList();
+        }
+    }
+
+    public void ActionComplete(ActionEventArgs<ServerEntry> args)
+    {
+        if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save)
+        {
+            // Triggers once save operation completes
+
+            var allSettings = db.FindAll<ServerEntry>("Servers");
+
+            //Actually save to DB
+            foreach (ServerEntry server in ServerList)
+            {
+                var dbServer = allSettings.First(x => x.Uuid == server.Uuid);
+                if (dbServer == null)
+                {
+                    //Opps! All Berries!
+                    Console.WriteLine(3);
+                }
+                else
+                {
+                    dbServer.Apikey = server.Apikey;
+                    dbServer.Hostname = server.Hostname;
+                    dbServer.SFSM_Port = server.SFSM_Port;
+                    dbServer.Watchdog_Port = server.Watchdog_Port;
+                    db.Update("Servers", dbServer);
+                }
+            }
+        }
+    }
+
+    public void ToolbarClickHandler(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        if (args.Item.Id == "Manage")
+        {
+            if (ServerGrid.SelectedRecords.Count == 0)
+            {
+                //Nothing Selected
+                args.Cancel = true;
+                return;
+            }
+
+            //You can customized your code here....
+            //Go to Management Page
+            Console.WriteLine("Open the Management Page isnt done yet. " + $"/ManageServer?guid={ServerGrid.SelectedRecords[0].Uuid}");
+            navManager.NavigateTo($"/ManageServer?guid={ServerGrid.SelectedRecords[0].Uuid}");
+        }
+    }
+}
