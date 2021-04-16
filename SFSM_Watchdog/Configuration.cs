@@ -189,6 +189,12 @@ namespace SFSM_Watchdog
             if (candidates.Count() > 1)
             {
                 Configuration.WriteConsole("Something went wrong, we got " + candidates.Count() + " copies of Satisfactory running?");
+                
+                foreach(var process in candidates)
+                {
+                    Configuration.WriteConsole("ProcessName: " + process.ProcessName + "   MainWindowTitle: " + process.MainWindowTitle);
+                }
+
                 return false;
             }
             else if (candidates.Count == 0)

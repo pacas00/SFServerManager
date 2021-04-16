@@ -48,11 +48,12 @@ namespace SFSM_Watchdog.Controllers
 
             StreamReader sr   = new StreamReader(this.Request.Body);
             string       JSON = await sr.ReadToEndAsync();
-            
-            Console.WriteLine("I WAS POST REQUEST");
+
+            #if DEBUG
             Console.WriteLine("..");
             Console.WriteLine(JSON);
             Console.WriteLine("..");
+            #endif
             
             if (JSON == null || JSON.Length == 0)
             {
@@ -120,6 +121,15 @@ namespace SFSM_Watchdog.Controllers
                             HandleObject(commandResponse, false, "Error","SFSM Not Installed");
                         }
                         
+                        if (isSFSMSupportingCommand(cr.Command) && !Configuration.SFSMDetected())
+                        {
+                            //Welp. Murder Time
+                            if (cr.Command == "Stop" || cr.Command == "Restart")
+                            {
+                                Configuration.TerminateGame();
+                            }
+                        }
+
                         if (cr.Command == "Restart")
                         {
                             Configuration.EnsureStarted();

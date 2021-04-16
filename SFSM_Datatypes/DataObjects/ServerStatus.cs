@@ -22,6 +22,8 @@ namespace SFServerManager.Code.DataObjects
         [JsonProperty("Watchdog")]
         public Watchdog Watchdog { get; set; } = new Watchdog();
 
+        public List<string> Players { get; set; } = new List<string>();
+
         public string GetSMLVersion()
         {
             if (Plugins.FindAll(x => x.FriendlyName.Equals("Satisfactory Mod Loader")).Count != 0)

@@ -14,7 +14,7 @@ namespace SFServerManager.Code
     public partial class CommandResponse
     {
         [JsonProperty("data")]
-        public Data Data { get; set; }
+        public Data Data { get; set; } = new Data();
 
         [JsonProperty("message")]
         public string Message { get; set; }
@@ -44,12 +44,21 @@ namespace SFServerManager.Code
     {
         [JsonProperty("Request")]
         public CommandRequest Request { get; set; }
+
+        [JsonProperty("Response")]
+        public CommandResponseData Response { get; set; }
         
         [JsonProperty("Processor")]
         public string Processor { get; set; }
 
         [JsonProperty("Error")]
         public string Error { get; set; }
+    }
+
+    public class CommandResponseData
+    {
+        [JsonProperty("Players")]
+        public List<string> Players { get; set; }
     }
 
     public class CommandRequest

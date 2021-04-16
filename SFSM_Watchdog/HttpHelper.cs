@@ -19,6 +19,7 @@ namespace SFSM_Watchdog
             CommandRequest cr = new CommandRequest();
             cr.Accesssecret = AccessSecret;
             cr.Command = command;
+            cr.Commandjsondata = "";
 
             if (ObjToSerialise != null)
             {
@@ -50,7 +51,11 @@ namespace SFSM_Watchdog
 
                     var task = client.PostAsync(url, content).GetAwaiter().GetResult();
                     string jsonResult = task.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-
+                    #if DEBUG
+                    Console.WriteLine("---");
+                    Console.WriteLine(jsonResult);
+                    Console.WriteLine("---");
+                    #endif
                     return JsonConvert.DeserializeObject<CommandResponse>(jsonResult, new JsonSerializerSettings()
                     {
                         StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
@@ -69,6 +74,16 @@ namespace SFSM_Watchdog
                 else if (httpRequestException.Message.Contains("An error occurred while sending the request"))
                 {
                     Console.WriteLine("Failed to send request to " + url);
+                    //Damn it.
+                    if (!isRetry)
+                    {
+                        isRetry = true;
+                        goto retry;
+                    }
+                    else
+                    {
+                        isRetry = false;
+                    }
                 }
                 else if (httpRequestException.Message.Contains("established connection was aborted by the software in your host machine"))
                 {

@@ -54,6 +54,7 @@ namespace SFSM_Watchdog
 
             app.UseRouting();
 
+            #if DEBUG
             app.Use(async (context, next) =>
             {
                 Console.WriteLine(context.Request.Method);
@@ -62,6 +63,7 @@ namespace SFSM_Watchdog
                 Console.WriteLine();
                 await next.Invoke();
             });
+            #endif
 
             app.UseAuthorization();
 
