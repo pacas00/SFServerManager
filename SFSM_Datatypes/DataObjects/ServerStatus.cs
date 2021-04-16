@@ -19,6 +19,9 @@ namespace SFServerManager.Code.DataObjects
         [JsonProperty("World")]
         public World World { get; set; } = new World();
 
+        [JsonProperty("Watchdog")]
+        public Watchdog Watchdog { get; set; } = new Watchdog();
+
         public string GetSMLVersion()
         {
             if (Plugins.FindAll(x => x.FriendlyName.Equals("Satisfactory Mod Loader")).Count != 0)
@@ -114,7 +117,14 @@ namespace SFServerManager.Code.DataObjects
         }
     }
 
-    
+    public class Watchdog
+    {
+        [JsonProperty("InstanceRunning")]
+        public bool InstanceRunning { get; set; }
+
+    }
+
+
     public class Game
     {
         //GV_Main

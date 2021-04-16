@@ -2,9 +2,13 @@
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using SFServerManager.Code;
 using SFSM_Watchdog.Controllers;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace SFSM_Watchdog
 {
@@ -22,27 +26,74 @@ namespace SFSM_Watchdog
                 var settings = new JsonSerializerSettings();
                 settings.StringEscapeHandling = StringEscapeHandling.EscapeHtml;
 
-                (JsonSerializer.Create( settings )).Serialize(wr, ObjToSerialise);
+                (JsonSerializer.Create(settings)).Serialize(wr, ObjToSerialise);
                 cr.Commandjsondata = wr.ToString();
             }
-            
+
             return cr;
         }
 
-        public static string PostCommandRequest(CommandRequest request, string url = "http://localhost:8033/command")
+        public static CommandResponse PostCommandRequest(CommandRequest request, string url = "http://localhost:8033/command")
         {
-            HttpClient client = new HttpClient();
-            client.Timeout = TimeSpan.FromSeconds(15);
-            StringWriter wr = new StringWriter();
-            JsonSerializer.Create().Serialize(wr, request);
-            HttpContent content = new StringContent(wr.ToString());
-            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-            
-            var task = client.PostAsync(url, content).GetAwaiter().GetResult();
-            string jsonResult = task.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            bool isRetry = false;
+            //Ok!
+            retry:
+            try
+            {
+                {
+                    HttpClient client = new HttpClient();
+                    client.Timeout = TimeSpan.FromSeconds(15);
+                    StringWriter wr = new StringWriter();
+                    JsonSerializer.Create().Serialize(wr, request);
+                    HttpContent content = new StringContent(wr.ToString());
+                    content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
 
-            Console.WriteLine(jsonResult);
-            return jsonResult;
+                    var task = client.PostAsync(url, content).GetAwaiter().GetResult();
+                    string jsonResult = task.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+                    return JsonConvert.DeserializeObject<CommandResponse>(jsonResult, new JsonSerializerSettings()
+                    {
+                        StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
+                        Formatting = Formatting.None
+                    });
+                    
+                }
+                isRetry = false;
+            }
+            catch (HttpRequestException httpRequestException)
+            {
+                if (httpRequestException.Message.Contains("target machine actively refused"))
+                {
+
+                }
+                else if (httpRequestException.Message.Contains("An error occurred while sending the request"))
+                {
+                    Console.WriteLine("Failed to send request to " + url);
+                }
+                else if (httpRequestException.Message.Contains("established connection was aborted by the software in your host machine"))
+                {
+                    //Damn it.
+                    if (!isRetry)
+                    {
+                        isRetry = true;
+                        goto retry;
+                    }
+                    else
+                    {
+                        isRetry = false;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine(httpRequestException);
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+            }
+            return CommandResponse.Failed();
+
         }
 
     }

@@ -28,12 +28,28 @@ namespace SFServerManager.Code
         [JsonProperty("error")]
         public string Error { get; set; }
 
+        public static CommandResponse Failed()
+        {
+            CommandResponse commandResponse = new CommandResponse();
+
+            commandResponse.Success = false;
+            commandResponse.Code    = 400;
+            commandResponse.Error   = "DEFAULT ERROR";
+
+            return commandResponse;
+        }
     }
 
     public partial class Data
     {
         [JsonProperty("Request")]
         public CommandRequest Request { get; set; }
+        
+        [JsonProperty("Processor")]
+        public string Processor { get; set; }
+
+        [JsonProperty("Error")]
+        public string Error { get; set; }
     }
 
     public class CommandRequest

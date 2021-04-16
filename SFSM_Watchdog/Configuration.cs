@@ -147,8 +147,30 @@ namespace SFSM_Watchdog
             return true;
         }
 
-		#region JobSystem
-        
+        internal static bool IsGameRunning()
+        {
+            if (gameProcess == null)
+            {
+                return false;
+            }
+
+            if (gameProcess.HasExited)
+            {
+                return false;
+            }
+
+            return true;
+        }
+        internal static void EnsureStarted()
+        {
+            if (!IsGameRunning())
+            {
+                JobManager.GetSchedule("WatchDog").Execute();
+            }
+        }
+
+        #region JobSystem
+
         public static Process gameProcess = null;
 
 

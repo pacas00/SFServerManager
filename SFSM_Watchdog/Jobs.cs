@@ -5,14 +5,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentScheduler;
+using SFServerManager.Code;
 
 namespace SFSM_Watchdog
 {
     public class Jobs
     {
-        public static void SaveGameViaSFSM()
+        static bool Warned = false;
+        public static void RestartViaSFSM()
 		{
-            //TODO
+            CommandRequest commandRequest = HttpHelper.CreateCommandRequest(Configuration.AccessSecret, "Restart");
+            CommandResponse commandResponse = HttpHelper.PostCommandRequest(commandRequest, $"http://{Configuration.SFSMHostname()}:{Configuration.SFSM_Port}/command");
         }
 
         public class AutoRestart : IJob
@@ -25,7 +28,7 @@ namespace SFSM_Watchdog
                 }
                 else
                 {
-                    SaveGameViaSFSM();
+                    RestartViaSFSM();
 
                     Configuration.WriteConsole("Saving World", true);
 					//Ok, We are running.
@@ -93,7 +96,11 @@ namespace SFSM_Watchdog
                             startInfo.UseShellExecute  = false;
 
                             Configuration.WriteConsole("Starting", true);
-                            Configuration.WriteConsole("Non-Dedicated Server builds don't support launch arguments. Make sure the SFSM plugin is installed and configured to autostart");
+                            if (!Warned)
+                            {
+                                Configuration.WriteConsole("Non-Dedicated Server builds don't support launch arguments. Make sure the SFSM plugin is installed and configured to autostart");
+                                Warned = true;
+                            }
                             Process.Start(startInfo);
 
                         }
@@ -107,7 +114,11 @@ namespace SFSM_Watchdog
                             startInfo.UseShellExecute  = false;
 
                             Configuration.WriteConsole("Starting", true);
-                            Configuration.WriteConsole("Non-Dedicated Server builds don't support launch arguments. Make sure the SFSM plugin is installed and configured to autostart");
+                            if (!Warned)
+                            {
+                                Configuration.WriteConsole("Non-Dedicated Server builds don't support launch arguments. Make sure the SFSM plugin is installed and configured to autostart");
+                                Warned = true;
+                            }
                             Process.Start(startInfo);
                         }
                         if (Configuration.GameType == GameTypes.EpicEXP)
@@ -120,7 +131,11 @@ namespace SFSM_Watchdog
                             startInfo.UseShellExecute  = false;
 
                             Configuration.WriteConsole("Starting", true);
-                            Configuration.WriteConsole("Non-Dedicated Server builds don't support launch arguments. Make sure the SFSM plugin is installed and configured to autostart");
+                            if (!Warned)
+                            {
+                                Configuration.WriteConsole("Non-Dedicated Server builds don't support launch arguments. Make sure the SFSM plugin is installed and configured to autostart");
+                                Warned = true;
+                            }
                             Process.Start(startInfo);
                         }
 

@@ -50,7 +50,9 @@ namespace SFSM_Watchdog.Controllers
             string       JSON = await sr.ReadToEndAsync();
             
             Console.WriteLine("I WAS POST REQUEST");
+            Console.WriteLine("..");
             Console.WriteLine(JSON);
+            Console.WriteLine("..");
             
             if (JSON == null || JSON.Length == 0)
             {
@@ -85,13 +87,11 @@ namespace SFSM_Watchdog.Controllers
                     if (Configuration.SFSMDetected())
                     {
                         //Forward to SFSM and get results
-                        string  response     = HttpHelper.PostCommandRequest(cr, GetURLForSFSM());
-                        commandResponse = JsonConvert.DeserializeObject<CommandResponse>(response, new JsonSerializerSettings()
-                        {
-                            StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
-                            Formatting           = Formatting.None
-                        });
-                        HandleObject(commandResponse, true);
+                        commandResponse = HttpHelper.PostCommandRequest(cr, GetURLForSFSM());
+                        HandleObject(commandResponse, true,"Processor", "Processed by SFSM");
+                    } else
+                    {
+                        HandleObject(commandResponse, false, "Error","SFSM Not Installed");
                     }
 
                 } else
@@ -99,12 +99,10 @@ namespace SFSM_Watchdog.Controllers
                     //We Process it
                     if (cr.Command == "Stop" || cr.Command == "Force Quit")
                     {
-                        //TODO: Stop Watchdog from restarting
                         Jobs.ProcessWatcher.DontRestart = true;
                     }
                     if (cr.Command == "Start" || cr.Command == "Restart")
                     {
-                        //TODO: Stop Watchdog from restarting
                         Jobs.ProcessWatcher.DontRestart = false;
                     }
 
@@ -115,21 +113,33 @@ namespace SFSM_Watchdog.Controllers
                         if (Configuration.SFSMDetected())
                         {
                             //Forward to SFSM and get results
-                            string response = HttpHelper.PostCommandRequest(cr, GetURLForSFSM());
-                            commandResponse = JsonConvert.DeserializeObject<CommandResponse>(response, new JsonSerializerSettings()
-                            {
-                                StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
-                                Formatting           = Formatting.None
-                            });
+                            commandResponse = HttpHelper.PostCommandRequest(cr, GetURLForSFSM());
+                            HandleObject(commandResponse, true,"Processor", "Processed by SFSM+Watchdog");
+                        } else
+                        {
+                            HandleObject(commandResponse, false, "Error","SFSM Not Installed");
                         }
-                        HandleObject(commandResponse, true);
+                        
+                        if (cr.Command == "Restart")
+                        {
+                            Configuration.EnsureStarted();
+                            HandleObject(commandResponse, true,"Processor", "Processed by SFSM+Watchdog");
+                        }
                     } else
                     {
-                        HandleObject(commandResponse, false);
+                        if (cr.Command == "Start" )
+                        {
+                            Configuration.EnsureStarted();
+                            HandleObject(commandResponse, true,"Processor", "Processed by Watchdog");
+                        }
+                        if (cr.Command == "Force Quit")
+                        {
+                            Configuration.TerminateGame();
+                            HandleObject(commandResponse, true,"Processor", "Processed by Watchdog");
+                        }
                     }
                 }
-                
-                
+
             }
             else
             {
@@ -188,8 +198,21 @@ namespace SFSM_Watchdog.Controllers
         }
 
         //Add Watchdog Data
-        private void HandleObject(CommandResponse commandResponse, bool hasSFSMOutput = true)
+        private void HandleObject(CommandResponse commandResponse, bool hasSFSMOutput = true, string key = "", string value = "")
         {
+            switch (key)
+            {
+                case "Processor":
+                {
+                    commandResponse.Data.Processor = value;
+                    break;
+                }
+                case "Error":
+                {
+                    commandResponse.Data.Error = value;
+                    break;
+                }
+            }
         }
     }
 }

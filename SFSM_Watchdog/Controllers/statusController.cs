@@ -41,10 +41,6 @@ namespace SFSM_Watchdog.Controllers
                         client.Timeout = TimeSpan.FromSeconds(15);
                        
                         string Status = await client.GetStringAsync(GetURLForSFSM());
-                        
-                        Console.WriteLine(".");
-                        Console.WriteLine(Status);
-                        Console.WriteLine(".");
 
                         StatusResponse cr = JsonConvert.DeserializeObject<StatusResponse>(Status, new JsonSerializerSettings()
                         {
@@ -52,8 +48,6 @@ namespace SFSM_Watchdog.Controllers
                             Formatting           = Formatting.None
                         });
 
-                        //Do what we need to
-                        //TODO: INTO HANDLER
                         this.Response.StatusCode = 200;
 
                         HandleObject(cr);
@@ -133,6 +127,7 @@ namespace SFSM_Watchdog.Controllers
         //Add Watchdog Data
         private void HandleObject(StatusResponse statusResponse, bool hasSFSMOutput = true)
         {
+            statusResponse.Data.Watchdog.InstanceRunning = Configuration.IsGameRunning();
         }
 
         private string GetURLForSFSM()
