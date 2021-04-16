@@ -43,3 +43,12 @@ Currently, it does not support the following:
 * Show list of Plugins
 * (Coming Soon) Kick Players via player list.
 * (Coming Soon) Save and Load via manage tab
+
+
+## Contributions
+* Do I accept them - Yes.
+* Am I ok with PRs for features and or bugfixes - Yes, So long as the code is well thought out and code quality isn't worse than mine.
+* Am I ok with someone writing a different / better web panel based on the plugin / watchdog - Yes.
+* Am I ok with someone writing a different / better watchdog app - Yes.
+* Am I ok with someone making their own game plugin - Well, I can't stop you. I'd prefer one really good and well maintained plugin, But do what you want, I'm not your boss.
+
