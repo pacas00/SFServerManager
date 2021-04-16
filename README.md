@@ -36,10 +36,10 @@ Currently, it does not support the following:
 ### Web Panel
 * Manage instances of Watchdog enabled servers.
 * Show Status from Game Plugin enabled servers (Directly or via Watchdog)
-** Show Session name, visiblity and show Session ID (Non-Dedicated Only)
-** Show Game Version and SML version (If installed)
-** Show Player count
-** Show list of Players
-** Show list of Plugins
-** (Coming Soon) Kick Players via player list.
-** (Coming Soon) Save and Load via manage tab
+* Show Session name, visiblity and show Session ID (Non-Dedicated Only)
+* Show Game Version and SML version (If installed)
+* Show Player count
+* Show list of Players
+* Show list of Plugins
+* (Coming Soon) Kick Players via player list.
+* (Coming Soon) Save and Load via manage tab
