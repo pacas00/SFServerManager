@@ -109,7 +109,30 @@
                             <TabHeader Text="Players"></TabHeader>
                         </ChildContent>
                         <ContentTemplate>
-                            <div>I'm working on this.</div>
+                            <div class="card-body" style="
+                                     font-size: small;
+                                     font-family: monospace;
+                                     font-weight: 600;
+                                     line-height: 1;
+                                     padding: 0.5rem;
+                                 ">
+                                <table class="table">
+                                    <thead class="thead">
+                                        <tr>
+                                            <th scope="col">Player Name</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach (string player in Server.LastStatus.Players)
+                                    {
+                                        <tr>
+                                            <th scope="row">@player</th>
+                                        </tr>
+                                    }
+
+                                    </tbody>
+                                </table>
+                            </div>
                         </ContentTemplate>
                     </TabItem>
                     <TabItem>
@@ -156,15 +179,15 @@
 
                         </ContentTemplate>
                     </TabItem>
-                    <TabItem>
+                    <!--<TabItem>-->
                         <!-- Section 3 - Settings -->
-                        <ChildContent>
+                        <!--<ChildContent>
                             <TabHeader Text="Settings"></TabHeader>
                         </ChildContent>
                         <ContentTemplate>
                             <div>Settings.</div>
                         </ContentTemplate>
-                    </TabItem>
+                    </TabItem>-->
                 </TabItems>
             </SfTab>
         </div>
@@ -210,25 +233,25 @@
         {
             case "Start":
                 {
-                    var req = HttpHelper.CreateCommandRequest("C366020887DF753F10B335D9E0A031D8", "Start");
+                    var req = HttpHelper.CreateCommandRequest(Server.Apikey, "Start", "");
                     HttpHelper.PostCommandRequest(req, Server.buildURL("command"));
                     break;
                 }
             case "Stop":
                 {
-                    var req = HttpHelper.CreateCommandRequest("C366020887DF753F10B335D9E0A031D8", "Stop");
+                    var req = HttpHelper.CreateCommandRequest(Server.Apikey, "Stop", "");
                     HttpHelper.PostCommandRequest(req, Server.buildURL("command"));
                     break;
                 }
             case "Restart":
                 {
-                    var req = HttpHelper.CreateCommandRequest("C366020887DF753F10B335D9E0A031D8", "Restart");
+                    var req = HttpHelper.CreateCommandRequest(Server.Apikey, "Restart", "");
                     HttpHelper.PostCommandRequest(req, Server.buildURL("command"));
                     break;
                 }
             case "Force Quit":
                 {
-                    var req = HttpHelper.CreateCommandRequest("C366020887DF753F10B335D9E0A031D8", "Force Quit");
+                    var req = HttpHelper.CreateCommandRequest(Server.Apikey, "Force Quit", "");
                     HttpHelper.PostCommandRequest(req, Server.buildURL("command"));
                     break;
                 }

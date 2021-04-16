@@ -8,6 +8,7 @@ using FluentScheduler;
 using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
 using SFServerManager.Code.Instanced.Services;
+using SFServerManager.Code.Static.Utilities;
 
 namespace SFServerManager.Code.JobSystem
 {
@@ -58,7 +59,8 @@ namespace SFServerManager.Code.JobSystem
                 {
                     if (httpRequestException.Message.Contains("target machine actively refused"))
                     {
-                        
+                        //Skip
+                        continue;
                     } 
                     else if (httpRequestException.Message.Contains("established connection was aborted by the software in your host machine"))
                     {
@@ -80,6 +82,18 @@ namespace SFServerManager.Code.JobSystem
                 catch (Exception exception)
                 {
                     Console.WriteLine(exception);
+                }
+
+                if (entry.LastStatus.World.MapType == "GameWorld")
+                {
+                    //Cool, We have completed status, I hope
+                    var req         = HttpHelper.CreateCommandRequest(entry.Apikey, "ListPlayers", "");
+                    var cmdResponse = HttpHelper.PostCommandRequest(req, entry.buildURL("command"));
+                    if (cmdResponse?.Data?.Response?.Players != null)
+                    {
+                        entry.LastStatus.Players = cmdResponse?.Data?.Response?.Players;
+                        _DB.Update("Servers", entry);
+                    }
                 }
             }
         }

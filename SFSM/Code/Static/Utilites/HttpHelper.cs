@@ -11,11 +11,12 @@ namespace SFServerManager.Code.Static.Utilities
 {
     public static class HttpHelper
     {
-        public static CommandRequest CreateCommandRequest(string AccessSecret = "C366020887DF753F10B335D9E0A031D8", string command = "SaveGame", object ObjToSerialise = null)
+        public static CommandRequest CreateCommandRequest(string AccessSecret, string command, object ObjToSerialise = null)
         {
             CommandRequest cr = new CommandRequest();
             cr.Accesssecret = AccessSecret;
             cr.Command = command;
+            cr.Commandjsondata = "";
 
             if (ObjToSerialise != null)
             {
@@ -30,21 +31,77 @@ namespace SFServerManager.Code.Static.Utilities
             return cr;
         }
 
-        public static string PostCommandRequest(CommandRequest request, string url = "http://localhost:8033/command")
+        public static CommandResponse PostCommandRequest(CommandRequest request, string url = "http://localhost:8033/command")
         {
-            HttpClient client = new HttpClient();
-            client.Timeout = TimeSpan.FromSeconds(15);
-            StringWriter wr = new StringWriter();
-            JsonSerializer.Create().Serialize(wr, request);
-            HttpContent content = new StringContent(wr.ToString());
-            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-            
-            var task = client.PostAsync(url, content).GetAwaiter().GetResult();
-            string jsonResult = task.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            bool isRetry = false;
+            //Ok!
+            retry:
+            try
+            {
+                {
+                    HttpClient client = new HttpClient();
+                    client.Timeout = TimeSpan.FromSeconds(15);
+                    StringWriter wr = new StringWriter();
+                    JsonSerializer.Create().Serialize(wr, request);
+                    HttpContent content = new StringContent(wr.ToString());
+                    content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
 
-            Console.WriteLine(jsonResult);
+                    var task = client.PostAsync(url, content).GetAwaiter().GetResult();
+                    string jsonResult = task.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 
-            return jsonResult;
+                    return JsonConvert.DeserializeObject<CommandResponse>(jsonResult, new JsonSerializerSettings()
+                    {
+                        StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
+                        Formatting = Formatting.None
+                    });
+                    
+                }
+                isRetry = false;
+            }
+            catch (HttpRequestException httpRequestException)
+            {
+                if (httpRequestException.Message.Contains("target machine actively refused"))
+                {
+
+                }
+                else if (httpRequestException.Message.Contains("An error occurred while sending the request"))
+                {
+                    Console.WriteLine("Failed to send request to " + url);
+                    //Damn it.
+                    if (!isRetry)
+                    {
+                        isRetry = true;
+                        goto retry;
+                    }
+                    else
+                    {
+                        isRetry = false;
+                    }
+                }
+                else if (httpRequestException.Message.Contains("established connection was aborted by the software in your host machine"))
+                {
+                    //Damn it.
+                    if (!isRetry)
+                    {
+                        isRetry = true;
+                        goto retry;
+                    }
+                    else
+                    {
+                        isRetry = false;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine(httpRequestException);
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+            }
+            return CommandResponse.Failed();
+
         }
 
     }
