@@ -186,6 +186,12 @@ namespace SFSM_Watchdog
                                                                 !x.MainWindowTitle.Contains("Satisfactory Mod") &&
                                                                 !x.MainWindowTitle.Equals("") &&
                                                                 !x.HasExited).ToList();
+            //Filter a bit more - TODO: Add Dedicated server when released
+            if (candidates.Count() > 1)
+            {
+                candidates = candidates.FindAll(x => x.ProcessName.Contains("UE4") || x.ProcessName.Contains("FactoryGame"));
+            }
+
             if (candidates.Count() > 1)
             {
                 Configuration.WriteConsole("Something went wrong, we got " + candidates.Count() + " copies of Satisfactory running?");
